@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DG Калькулятор трудозатрат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f4f8;
+            padding: 20px;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Карточка */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #0b2b44, #1a4a6f);
+            color: white;
+            padding: 20px 28px;
+        }
+
+        .card-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-header p {
+            opacity: 0.85;
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 28px;
+        }
+
+        /* Сетка параметров */
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            background: #f9fafc;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .param-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #2c5a7a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .param-group input, .param-group select {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .param-group input:focus, .param-group select:focus {
+            outline: none;
+            border-color: #1a4a6f;
+            box-shadow: 0 0 0 3px rgba(26,74,111,0.1);
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+
+        /* Таблица коэффициентов */
+        .coeff-section {
+            background: #fefce8;
+            border-left: 4px solid #eab308;
+            padding: 16px 20px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+            transition: all 0.2s;
+        }
+
+        .coeff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+
+        .coeff-table th, .coeff-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .coeff-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .coeff-table input {
+            width: 85px;
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .btn-small {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        /* Основная таблица результатов */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 14px 12px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .results-table th {
+            background: #f1f5f9;
+            font-weight: 700;
+            color: #0f3b5c;
+        }
+
+        .level-cell {
+            font-weight: 600;
+            text-align: left;
+            cursor: help;
+            border-bottom: 1px dashed #94a3b8;
+        }
+
+        .total-row {
+            background: #eef2ff;
+            font-weight: 700;
+        }
+
+        .resource-block {
+            background: #ecfdf5;
+            border-radius: 20px;
+            padding: 18px 22px;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .resource-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .resource-label {
+            font-size: 0.8rem;
+            color: #0b5e42;
+        }
+
+        .resource-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #065f46;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #1a4a6f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f3550;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0b2b44;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 700px) {
+            .card-body {
+                padding: 16px;
+            }
+            .results-table th, .results-table td {
+                padding: 8px 4px;
+                font-size: 0.75rem;
+            }
+            .resource-value {
+                font-size: 1.2rem;
+            }
+        }
+
+        .tooltip-icon {
+            cursor: help;
+            border-bottom: 1px dotted;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h1>📊 Калькулятор трудозатрат DG</h1>
+            <p>Оценка количества бизнес-процессов и дата-объектов, которые опишут дата-партнеры с учетом сложности, ресурса и гибких весов</p>
+        </div>
+        <div class="card-body">
+            <!-- Параметры -->
+            <div class="params-grid">
+                <div class="param-group">
+                    <label>📅 Дата начала (2026)</label>
+                    <input type="date" id="startDate" value="2026-01-01" min="2026-01-01" max="2026-12-31">
+                </div>
+                <div class="param-group">
+                    <label>👥 Кол-во дата-партнеров</label>
+                    <input type="number" id="dpCount" value="30" min="1" max="200" step="1">
+                </div>
+                <div class="param-group">
+                    <label>⏱️ Доля времени на DG (%)</label>
+                    <input type="number" id="dgPercent" value="10" min="0" max="100" step="5">
+                </div>
+                <div class="param-group">
+                    <label>🏖️ Поправка (болезни/отпуск, дни)</label>
+                    <input type="number" id="sickLeave" value="30" min="0" max="90" step="1">
+                </div>
+                <div class="param-group checkbox-group">
+                    <label>⚙️ Учитывать веса коэффициентов</label>
+                    <input type="checkbox" id="useCoeffs">
+                </div>
+            </div>
+
+            <!-- Блок коэффициентов (скрыт по умолчанию) -->
+            <div id="coeffPanel" style="display: none;">
+                <div class="coeff-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <strong>🎛️ Коэффициенты весов (БП / ДО / КД)</strong>
+                        <button class="btn-small" id="resetCoeffsBtn">⟳ Сбросить к 0.6 / 0.5 / 1.0</button>
+                    </div>
+                    <table class="coeff-table" id="coeffTable">
+                        <thead>
+                            <tr><th>Уровень</th><th>K (БП)</th><th>K (ДО)</th><th>K (КД)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Уровень 1</td><td><input type="number" step="0.1" min="0" max="2" value="0.6" class="coeff-bp"></td><td><input type="number" step="0.1" min="0" max="2" value="0.5" class="coeff-do"></td><td><input type="number" step="0.1" min="0" max="2" value="1.0" class="coeff-kd"></td></tr>
+                            <tr><td>Уровень 2</td><td><input type="number" step="0.1" min="0" max="2" value="0.6" class="coeff-bp"></td><td><input type="number" step="0.1" min="0" max="2" value="0.5" class="coeff-do"></td><td><input type="number" step="0.1" min="0" max="2" value="1.0" class="coeff-kd"></td></tr>
+                            <tr><td>Уровень 3</td><td><input type="number" step="0.1" min="0" max="2" value="0.6" class="coeff-bp"></td><td><input type="number" step="0.1" min="0" max="2" value="0.5" class="coeff-do"></td><td><input type="number" step="0.1" min="0" max="2" value="1.0" class="coeff-kd"></td></tr>
+                            <tr><td>Уровень 4</td><td><input type="number" step="0.1" min="0" max="2" value="0.6" class="coeff-bp"></td><td><input type="number" step="0.1" min="0" max="2" value="0.5" class="coeff-do"></td><td><input type="number" step="0.1" min="0" max="2" value="1.0" class="coeff-kd"></td></tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size: 0.7rem; margin-top: 8px; color: #854d0e;">* Веса применяются к базовым часам: часы_БП×K_БП + часы_ДО×K_ДО + часы_КД×K_КД</div>
+                </div>
+            </div>
+
+            <!-- Базовые часы (скрытые данные) -->
+            <div id="baseHours" style="display: none;">
+                <!-- уровни: БП, ДО, КД -->
+                <!-- 1 --><span data-level="1" data-type="bp">6.1</span><span data-level="1" data-type="do">5.9</span><span data-level="1" data-type="kd">3.1</span>
+                <!-- 2 --><span data-level="2" data-type="bp">14.8</span><span data-level="2" data-type="do">14.2</span><span data-level="2" data-type="kd">6.1</span>
+                <!-- 3 --><span data-level="3" data-type="bp">28.9</span><span data-level="3" data-type="do">23.7</span><span data-level="3" data-type="kd">13.6</span>
+                <!-- 4 --><span data-level="4" data-type="bp">74.9</span><span data-level="4" data-type="do">95.1</span><span data-level="4" data-type="kd">40.6</span>
+            </div>
+
+            <!-- Ресурсный блок -->
+            <div class="resource-block" id="resourceBlock">
+                <div class="resource-item"><div class="resource-label">📆 Рабочих дней (всего)</div><div class="resource-value" id="totalWorkDays">0</div></div>
+                <div class="resource-item"><div class="resource-label">✅ Дней c вычетом отпусков</div><div class="resource-value" id="netWorkDays">0</div></div>
+                <div class="resource-item"><div class="resource-label">⏳ Часов на 1 ДП</div><div class="resource-value" id="hoursPerDp">0</div></div>
+                <div class="resource-item"><div class="resource-label">👥 Часов на всех ДП</div><div class="resource-value" id="hoursAllDp">0</div></div>
+            </div>
+
+            <!-- Таблица результатов -->
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Уровень сложности</th>
+                        <th>📖 Часов на 1 БП</th>
+                        <th>📌 БП на 1 ДП</th>
+                        <th>🏢 БП на всех ДП</th>
+                        <th>🗄️ Таблиц (ДО)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- динамические строки -->
+                </tbody>
+                <tfoot>
+                    <tr class="total-row" id="totalRow">
+                        <td><strong>ИТОГО</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td id="totalProcesses">0</td>
+                        <td id="totalTables">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="copyBtn">📋 Скопировать результаты</button>
+                <button class="btn btn-secondary" id="resetAllBtn">🔄 Сбросить все настройки</button>
+                <button class="btn btn-secondary" id="exportBtn">📎 Экспорт в текст</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="toast" class="toast">✅ Скопировано в буфер</div>
+
+<script>
+    // ---------- Базовые данные ----------
+    const levelsData = {
+        1: { bp: 6.1, do: 5.9, kd: 3.1, doCount: 3, desc: "Вся информация известна и доступна. Задача-перенести готовые данные в каталог. Минимум уточнений и коммуникаций." },
+        2: { bp: 14.8, do: 14.2, kd: 6.1, doCount: 15, desc: "Данные известны, но их много. Основное время займет рутинная, но масштабная работа по внесению данных в каталог. Редкие коммуникации и уточнения." },
+        3: { bp: 28.9, do: 23.7, kd: 13.6, doCount: 35, desc: "Общая картина ясна, но часть информации отсутствует или требует выяснения/проверки. Необходимы запросы коллегам, согласования, иные запросы. Есть элементы аналитической работы." },
+        4: { bp: 74.9, do: 95.1, kd: 40.6, doCount: 35, desc: "Сложный, запутанный бизнес-процесс. Множество вовлеченных систем и объектов, отсутствуют явные ответственные. Требуется глубокая аналитическая работа, многочисленные согласования и коммуникации." }
+    };
+
+    // DOM элементы
+    const startDateInput = document.getElementById('startDate');
+    const dpCountInput = document.getElementById('dpCount');
+    const dgPercentInput = document.getElementById('dgPercent');
+    const sickLeaveInput = document.getElementById('sickLeave');
+    const useCoeffsCheck = document.getElementById('useCoeffs');
+    const coeffPanel = document.getElementById('coeffPanel');
+    const resultsBody = document.getElementById('resultsBody');
+    const totalProcessesSpan = document.getElementById('totalProcesses');
+    const totalTablesSpan = document.getElementById('totalTables');
+
+    // Функция для подсчета рабочих дней в 2026 (пн-пт)
+    function getWorkingDays(startDate, endDate) {
+        let count = 0;
+        const current = new Date(startDate);
+        const end = new Date(endDate);
+        while (current <= end) {
+            const dayOfWeek = current.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+            current.setDate(current.getDate() + 1);
+        }
+        return count;
+    }
+
+    // Получение текущих коэффициентов (если чекбокс включен)
+    function getCoefficients() {
+        if (!useCoeffsCheck.checked) return null;
+        const coeffs = {};
+        for (let lvl = 1; lvl <= 4; lvl++) {
+            const row = document.querySelector(`#coeffTable tbody tr:nth-child(${lvl})`);
+            if (row) {
+                const kbp = parseFloat(row.querySelector('.coeff-bp').value) || 0;
+                const kdo = parseFloat(row.querySelector('.coeff-do').value) || 0;
+                const kkd = parseFloat(row.querySelector('.coeff-kd').value) || 0;
+                coeffs[lvl] = { kbp, kdo, kkd };
+            }
+        }
+        return coeffs;
+    }
+
+    // Расчет часов на процесс для уровня
+    function getHoursForLevel(level, coeffsMap) {
+        const data = levelsData[level];
+        if (!coeffsMap) {
+            // без коэффициентов = сумма базовых
+            return data.bp + data.do + data.kd;
+        } else {
+            const k = coeffsMap[level];
+            return (data.bp * k.kbp) + (data.do * k.kdo) + (data.kd * k.kkd);
+        }
+    }
+
+    // Главная функция пересчета
+    function recalc() {
+        // 1. Ресурсное время
+        const startDateStr = startDateInput.value;
+        if (!startDateStr) return;
+        const endDate = new Date(2026, 11, 31); // 31.12.2026
+        const startDateObj = new Date(startDateStr);
+        if (startDateObj > endDate) {
+            alert("Дата начала не может быть позже 31.12.2026");
+            return;
+        }
+        const totalWorkDaysRaw = getWorkingDays(startDateObj, endDate);
+        const sickDays = parseFloat(sickLeaveInput.value) || 0;
+        const netWorkDays = Math.max(0, totalWorkDaysRaw - sickDays);
+        const dgPercent = parseFloat(dgPercentInput.value) || 0;
+        const dpCount = parseInt(dpCountInput.value) || 0;
+        
+        const hoursPerDay = 8;
+        const hoursOneDp = netWorkDays * hoursPerDay * (dgPercent / 100);
+        const hoursAllDp = hoursOneDp * dpCount;
+        
+        // Обновляем ресурсный блок
+        document.getElementById('totalWorkDays').innerText = totalWorkDaysRaw;
+        document.getElementById('netWorkDays').innerText = netWorkDays;
+        document.getElementById('hoursPerDp').innerText = hoursOneDp.toFixed(1) + ' ч';
+        document.getElementById('hoursAllDp').innerText = hoursAllDp.toFixed(0) + ' ч';
+        
+        // 2. Получаем коэффициенты (если нужно)
+        const useCoeffs = useCoeffsCheck.checked;
+        const coeffsMap = useCoeffs ? getCoefficients() : null;
+        
+        // 3. Рассчитываем по уровням
+        let totalProcessesAll = 0;
+        let totalTablesAll = 0;
+        const rowsHtml = [];
+        
+        for (let lvl = 1; lvl <= 4; lvl++) {
+            const hoursPerProc = getHoursForLevel(lvl, coeffsMap);
+            if (hoursPerProc <= 0) {
+                // защита от деления на ноль
+                rowsHtml.push(`
+                    <tr>
+                        <td class="level-cell" title="${levelsData[lvl].desc}">Уровень ${lvl}</td>
+                        <td>${hoursPerProc.toFixed(1)}</td>
+                        <td colspan="3">Ошибка: часы = 0</td>
+                    </tr>
+                `);
+                continue;
+            }
+            // Кол-во БП на 1 ДП (математическое округление)
+            let bpPerOneDp = hoursOneDp / hoursPerProc;
+            bpPerOneDp = Math.round(bpPerOneDp);
+            const bpAllDp = bpPerOneDp * dpCount;
+            const tablesCount = bpAllDp * levelsData[lvl].doCount;
+            
+            totalProcessesAll += bpAllDp;
+            totalTablesAll += tablesCount;
+            
+            rowsHtml.push(`
+                <tr>
+                    <td class="level-cell" title="${levelsData[lvl].desc}">Уровень ${lvl}</td>
+                    <td>${hoursPerProc.toFixed(1)}</td>
+                    <td>${bpPerOneDp}</td>
+                    <td>${bpAllDp}</td>
+                    <td>${tablesCount}</td>
+                </tr>
+            `);
+        }
+        resultsBody.innerHTML = rowsHtml.join('');
+        totalProcessesSpan.innerText = totalProcessesAll;
+        totalTablesSpan.innerText = totalTablesAll;
+    }
+    
+    // Сохранение коэффициентов в localStorage
+    function saveCoeffsToLocal() {
+        if (!useCoeffsCheck.checked) return;
+        const coeffs = getCoefficients();
+        if (coeffs) {
+            localStorage.setItem('dg_coeffs', JSON.stringify(coeffs));
+        }
+    }
+    
+    function loadCoeffsFromLocal() {
+        const saved = localStorage.getItem('dg_coeffs');
+        if (saved) {
+            try {
+                const coeffs = JSON.parse(saved);
+                for (let lvl = 1; lvl <= 4; lvl++) {
+                    const row = document.querySelector(`#coeffTable tbody tr:nth-child(${lvl})`);
+                    if (row && coeffs[lvl]) {
+                        row.querySelector('.coeff-bp').value = coeffs[lvl].kbp;
+                        row.querySelector('.coeff-do').value = coeffs[lvl].kdo;
+                        row.querySelector('.coeff-kd').value = coeffs[lvl].kkd;
+                    }
+                }
+            } catch(e) {}
+        }
+    }
+    
+    // Сброс коэффициентов к дефолту (0.6, 0.5, 1.0)
+    function resetCoeffsToDefault() {
+        for (let lvl = 1; lvl <= 4; lvl++) {
+            const row = document.querySelector(`#coeffTable tbody tr:nth-child(${lvl})`);
+            if (row) {
+                row.querySelector('.coeff-bp').value = 0.6;
+                row.querySelector('.coeff-do').value = 0.5;
+                row.querySelector('.coeff-kd').value = 1.0;
+            }
+        }
+        if (useCoeffsCheck.checked) {
+            saveCoeffsToLocal();
+            recalc();
+        } else {
+            recalc();
+        }
+    }
+    
+    // Сброс всех параметров
+    function resetAllSettings() {
+        startDateInput.value = '2026-01-01';
+        dpCountInput.value = '30';
+        dgPercentInput.value = '10';
+        sickLeaveInput.value = '30';
+        useCoeffsCheck.checked = false;
+        coeffPanel.style.display = 'none';
+        resetCoeffsToDefault();  // сбрасываем внутренние значения, но панель скрыта
+        localStorage.removeItem('dg_coeffs');
+        recalc();
+    }
+    
+    // Копирование результатов в читаемом виде
+    function copyResults() {
+        let text = "📊 РЕЗУЛЬТАТЫ КАЛЬКУЛЯТОРА ТРУДОЗАТРАТ DG\n";
+        text += `Дата начала: ${startDateInput.value}\n`;
+        text += `Дата-партнеров: ${dpCountInput.value}, доля DG: ${dgPercentInput.value}%, поправка: ${sickLeaveInput.value} дней\n`;
+        text += `Доступно часов на 1 ДП: ${document.getElementById('hoursPerDp').innerText}\n`;
+        text += `Доступно часов на всех ДП: ${document.getElementById('hoursAllDp').innerText}\n\n`;
+        text += "Уровень | Часов на 1 БП | БП на 1 ДП | БП на всех ДП | Таблиц\n";
+        const rows = document.querySelectorAll('#resultsBody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+                const level = cells[0].innerText;
+                const hours = cells[1].innerText;
+                const bp1 = cells[2].innerText;
+                const bpAll = cells[3].innerText;
+                const tables = cells[4].innerText;
+                text += `${level} | ${hours} | ${bp1} | ${bpAll} | ${tables}\n`;
+            }
+        });
+        text += `ИТОГО БП: ${totalProcessesSpan.innerText}, ИТОГО таблиц: ${totalTablesSpan.innerText}`;
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    }
+    
+    // Экспорт в txt
+    function exportToTxt() {
+        let content = "=== ОТЧЕТ КАЛЬКУЛЯТОРА ТРУДОЗАТРАТ DG ===\n";
+        content += `Дата формирования: ${new Date().toLocaleString()}\n`;
+        content += `Период: ${startDateInput.value} – 31.12.2026\n`;
+        content += `Дата-партнеров: ${dpCountInput.value}\n`;
+        content += `Доля времени на DG: ${dgPercentInput.value}%\n`;
+        content += `Поправка (отпуска/болезни): ${sickLeaveInput.value} дней\n`;
+        content += `Рабочих дней в периоде: ${document.getElementById('totalWorkDays').innerText}\n`;
+        content += `Рабочих дней с вычетом: ${document.getElementById('netWorkDays').innerText}\n`;
+        content += `Часов на 1 ДП: ${document.getElementById('hoursPerDp').innerText}\n`;
+        content += `Часов на всех ДП: ${document.getElementById('hoursAllDp').innerText}\n\n`;
+        content += "┌────────────┬──────────────┬────────────┬────────────────┬─────────────┐\n";
+        content += "│  Уровень   │ Часов на 1 БП │ БП на 1 ДП │ БП на всех ДП  │   Таблиц    │\n";
+        content += "├────────────┼──────────────┼────────────┼────────────────┼─────────────┤\n";
+        
+        const rows = document.querySelectorAll('#resultsBody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+                const level = cells[0].innerText.padEnd(10);
+                const hours = cells[1].innerText.padStart(12);
+                const bp1 = cells[2].innerText.padStart(10);
+                const bpAll = cells[3].innerText.padStart(14);
+                const tables = cells[4].innerText.padStart(11);
+                content += `│ ${level} │ ${hours} │ ${bp1} │ ${bpAll} │ ${tables} │\n`;
+            }
+        });
+        content += "├────────────┼──────────────┼────────────┼────────────────┼─────────────┤\n";
+        content += `│ ИТОГО      │              │            │ ${String(totalProcessesSpan.innerText).padStart(14)} │ ${String(totalTablesSpan.innerText).padStart(11)} │\n`;
+        content += "└────────────┴──────────────┴────────────┴────────────────┴─────────────┘\n";
+        content += `\n* Коэффициенты: ${useCoeffsCheck.checked ? "применены" : "не применялись"}`;
+        
+        const blob = new Blob([content], {type: "text/plain"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `DG_tрудозатраты_${startDateInput.value}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+    
+    // Обработчики событий
+    function bindEvents() {
+        startDateInput.addEventListener('change', recalc);
+        dpCountInput.addEventListener('input', recalc);
+        dgPercentInput.addEventListener('input', recalc);
+        sickLeaveInput.addEventListener('input', recalc);
+        useCoeffsCheck.addEventListener('change', function() {
+            if (this.checked) {
+                coeffPanel.style.display = 'block';
+                loadCoeffsFromLocal();
+            } else {
+                coeffPanel.style.display = 'none';
+            }
+            recalc();
+        });
+        document.getElementById('resetCoeffsBtn').addEventListener('click', () => {
+            resetCoeffsToDefault();
+            if (useCoeffsCheck.checked) saveCoeffsToLocal();
+            recalc();
+        });
+        document.getElementById('copyBtn').addEventListener('click', copyResults);
+        document.getElementById('resetAllBtn').addEventListener('click', resetAllSettings);
+        document.getElementById('exportBtn').addEventListener('click', exportToTxt);
+        
+        // Сохраняем коэффициенты при их изменении
+        const coeffInputs = document.querySelectorAll('#coeffTable input');
+        coeffInputs.forEach(inp => {
+            inp.addEventListener('input', () => {
+                if (useCoeffsCheck.checked) {
+                    saveCoeffsToLocal();
+                    recalc();
+                }
+            });
+        });
+    }
+    
+    // Инициализация
+    function init() {
+        bindEvents();
+        resetAllSettings(); // стартовые параметры по умолчанию
+    }
+    init();
+</script>
+</body>
+</html>
